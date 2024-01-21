@@ -32,11 +32,11 @@ def print_batch_exception(batch_exception: batchmodels.BatchErrorException):
     print('Exception encountered:')
     if batch_exception.error and \
             batch_exception.error.message and \
-            batch_exception.error.message.value:
-        print(batch_exception.error.message.value)
-        if batch_exception.error.values:
+            batch_exception.error.message.value: # type: ignore
+        print(batch_exception.error.message.value) # type: ignore
+        if batch_exception.error.values: # type: ignore
             print()
-            for mesg in batch_exception.error.values:
+            for mesg in batch_exception.error.values: # type: ignore
                 print(f'{mesg.key}:\t{mesg.value}')
     print('-------------------------------------------')
 
@@ -49,14 +49,14 @@ def create_pool_if_not_exist(batch_client: BatchServiceClient, pool: str)-> None
         pool (str): Name of the pool to create.
     """
     try:
-        print("Attempting to create pool:", pool.id)
+        print("Attempting to create pool:", pool)
         batch_client.pool.add(pool)
-        print("Created pool:", pool.id)
+        print("Created pool:", pool)
     except batchmodels.BatchErrorException as e:
-        if e.error.code != "PoolExists":
+        if e.error and e.error.code != "PoolExists": # type: ignore
             raise
         else:
-            print("Pool {!r} already exists".format(pool.id))
+            print("Pool {!r} already exists".format(pool))
 
 # wrap_commands
 def wrap_commands_in_shell(ostype: str, commands: list)-> str:
@@ -88,5 +88,5 @@ def get_arguments():
     return options
 
 # create_pool
-def create_pool():
+def create_pool_and_wait_for_nodes(batch_client: BatchServiceClient, pool_id: str):
     pass
