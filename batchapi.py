@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ast import arg
-from calendar import c
+
 from configparser import ConfigParser
 import azure.batch.models as batchmodels
 import argparse
