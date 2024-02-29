@@ -82,6 +82,7 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="Welcome to create your Batch Configuration")
     parser.add_argument("-pi", "--pool", type=str, dest="pool_id", help="Name of the VM Pool for Azure Batch", default="testpool")
     parser.add_argument("-os", "--ostype", dest='os_type', type=str, choices=OS_TYPE, help="The type of operating system default is 'linux'", default="linux")
+    parser.add_argument("-vm", "--vm-size", dest="vm_size", type=str, help="The size of the VM", default="standard_a1_v2")
     options = parser.parse_args()
     if not options.pool_id:
         parser.error("[-] Please enter a name for the pool")
