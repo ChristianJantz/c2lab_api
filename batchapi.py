@@ -27,18 +27,18 @@ def execute_batch(global_config: ConfigParser, batch_config: ConfigParser, args_
     
     # Environment settings
     env_conf = [
-        batchmodels.EnvironmentSetting(
-            name="BATCH_DOWNLOAD_URL",
-            value="https://github.com/Azure/batch-insights/releases/download/{}/batch-insights".format(global_config.get("INSIGHTS", "batch_git_version"))
-        ),
-        batchmodels.EnvironmentSetting(
-            name="APP_INSIGHTS_APP_ID",
-            value=global_config.get("INSIGHTS", "app_insights_app_id")
-        ),
-        batchmodels.EnvironmentSetting(
-            name="APP_INSIGHTS_INSTRUMENTATION_KEY",
-            value=global_config.get("INSIGHTS", "app_insights_instrumentation_key")
-        ),
+        # batchmodels.EnvironmentSetting(
+        #     name="BATCH_DOWNLOAD_URL",
+        #     value="https://github.com/Azure/batch-insights/releases/download/{}/batch-insights".format(global_config.get("INSIGHTS", "batch_git_version"))
+        # ),
+        # batchmodels.EnvironmentSetting(
+        #     name="APP_INSIGHTS_APP_ID",
+        #     value=global_config.get("INSIGHTS", "app_insights_app_id")
+        # ),
+        # batchmodels.EnvironmentSetting(
+        #     name="APP_INSIGHTS_INSTRUMENTATION_KEY",
+        #     value=global_config.get("INSIGHTS", "app_insights_instrumentation_key")
+        # ),
         
     ]
     
