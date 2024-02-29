@@ -2,7 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from configparser import ConfigParser
+from azure.batch import BatchServiceClient
 import azure.batch.models as batchmodels
+from azure.batch.batch_auth import SharedKeyCredentials
+import argparse
+import os
+from configparser import ConfigParser
+from azure.batch import BatchServiceClient
+from azure.batch.batch_auth import SharedKeyCredentials
 import argparse
 import os
 import common.helpers
@@ -19,7 +26,7 @@ def execute_batch(global_config: ConfigParser, batch_config: ConfigParser, args_
     blob_account_key = global_config.get("STORAGE", "storage_account_key")  
     blob_account_url = global_config.get("STORAGE", "storage_account_url")
     
-    pool_id = batch_config.get("POOL", "pool_id")    
+    pool_id = args_conf.pool_id    
     job_id = batch_config.get("JOB", "job_id")
 
     common.helpers.print_configuration(global_config)
@@ -41,9 +48,16 @@ def execute_batch(global_config: ConfigParser, batch_config: ConfigParser, args_
         # ),
         
     ]
+    credentials = SharedKeyCredentials(
+        account_name=batch_account_name,
+        key=batch_account_key)
+    batch_client = BatchServiceClient(
+        credentials= credentials,
+        batch_url=batch_account_url)
     
     try:
-        pass
+        # create pool 
+        common.helpers.create_pool_and_wait_for_nodes(batch_client=batch_client, pool_id=pool_id, pool_config=batch_config, vm_size=args_conf.vm_size, os_type=args_conf.os_type, env_config=env_conf)
     except batchmodels.BatchErrorException as e:
         common.helpers.print_batch_exception(e)
         raise

@@ -80,14 +80,98 @@ def wrap_commands_in_shell(ostype: str, commands: list)-> str:
 def get_arguments():
 
     parser = argparse.ArgumentParser(description="Welcome to create your Batch Configuration")
-    parser.add_argument("-pi", "--pool", type=str, dest="pool_id", help="Name of the VM Pool for Azure Batch", default="testpool")
+    parser.add_argument("-pi", "--pool", type=str, dest="pool_id",required=True, help="Name of the VM Pool for Azure Batch", default="testpool")
     parser.add_argument("-os", "--ostype", dest='os_type', type=str, choices=OS_TYPE, help="The type of operating system default is 'linux'", default="linux")
     parser.add_argument("-vm", "--vm-size", dest="vm_size", type=str, help="The size of the VM", default="standard_a1_v2")
+    
     options = parser.parse_args()
-    if not options.pool_id:
-        parser.error("[-] Please enter a name for the pool")
+    # if not options.pool_id:
+    #     parser.error("[-] Please enter a name for the pool")
     return options
 
 # create_pool
-def create_pool_and_wait_for_nodes(batch_client: BatchServiceClient, pool_id: str):
-    pass
+def create_pool_and_wait_for_nodes(batch_client: BatchServiceClient, pool_id: str, pool_config: ConfigParser, vm_size: str, os_type: str, env_config: List[batchmodels.EnvironmentSetting] | None)-> None:
+    """Create a pool of compute nodes with the specified OS settings.
+
+    Args:
+        batch_client (BatchServiceClient): The BatchServiceClient object used to interact with the Batch service.
+        pool_id (str): The name of the pool to be created.
+        pool_config (ConfigParser): The configuration object containing the pool settings.
+        vm_size (str): The size of the virtual machines in the pool.
+        os_type (str): The operating system type of the pool.
+        env_config (List[batchmodels.EnvironmentSetting] | None): A list of environment settings for the pool.
+
+    Returns:
+        None: This function does not return anything.
+
+    Raises:
+        None: This function does not raise any exceptions.
+    """
+    # check if pool exists if not create it
+    if not batch_client.pool.exists(pool_id=pool_id) and os_type.lower == "linux":
+        new_pool = batchmodels.PoolAddParameter(
+            id=pool_id,
+            virtual_machine_configuration=batchmodels.VirtualMachineConfiguration(
+                image_reference=batchmodels.ImageReference(
+                    publisher= pool_config.get("POOL", "publisher"),
+                    offer= pool_config.get("POOL", "offer"),
+                    sku= pool_config.get("POOL", "sku"),
+                    version= "latest"
+                ),
+                node_agent_sku_id= pool_config.get("POOL", "node_agent_sku_id"),
+            ),
+            vm_size=vm_size,
+            enable_inter_node_communication=True,
+            target_dedicated_nodes= int(pool_config.get("POOL", "target_dedicated_nodes")),
+            start_task=batchmodels.StartTask(
+                command_line=wrap_commands_in_shell(
+                    os_type,
+                    [
+                        "echo 'Hello from the Batch Hello World start task!'",
+                    ]
+                ),
+                environment_settings=env_config,
+                user_identity=batchmodels.UserIdentity(
+                    auto_user=batchmodels.AutoUserSpecification(
+                        scope=batchmodels.AutoUserScope.pool,
+                        elevation_level=batchmodels.ElevationLevel.admin
+                    )
+                ),
+                max_task_retry_count=2,
+                wait_for_success=True,
+            ),
+        )
+        batch_client.pool.add(new_pool)
+        # Windows pool creation
+    elif not batch_client.pool.exists(pool_id=pool_id) and os_type.lower == "windows":
+        new_pool = batchmodels.PoolAddParameter(
+            id=pool_id,
+            virtual_machine_configuration=batchmodels.VirtualMachineConfiguration(
+                image_reference=batchmodels.ImageReference(
+                    publisher= pool_config.get("WINPOOL", "publisher"),
+                    offer= pool_config.get("WINPOOL", "offer"),
+                    sku= pool_config.get("WINPOOL", "sku"),
+                    version= "latest"
+                ),
+                node_agent_sku_id= pool_config.get("WINPOOL", "node_agent_sku_id"),
+            ),
+            vm_size=vm_size,
+            target_dedicated_nodes= int(pool_config.get("WINPOOL", "target_dedicated_nodes")),
+            start_task=batchmodels.StartTask(
+                command_line=wrap_commands_in_shell(
+                    os_type,
+                    [
+                        "echo 'Hello from the Batch Hello World start task!'",
+                    ]
+                ),
+                environment_settings=env_config,
+                user_identity=batchmodels.UserIdentity(
+                    auto_user=batchmodels.AutoUserSpecification(
+                        scope=batchmodels.AutoUserScope.pool,
+                        elevation_level=batchmodels.ElevationLevel.admin
+                    )
+                ),
+                max_task_retry_count=2,
+                wait_for_success=True,
+            ),
+        )
